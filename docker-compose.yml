@@ -1,0 +1,7 @@
+version: "3"
+services:
+  arcadedb:
+    env_file: arcadedb.env
+    image: arcadedata/arcadedb:${ARCADEDB_VERSION}
+    ports:
+      - "2480:2480"
