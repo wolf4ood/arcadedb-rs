@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Display};
 
 use serde::de::DeserializeOwned;
 
@@ -18,7 +18,7 @@ pub trait Transport {
     where
         T: Request + Send + Sync,
         T::Payload: Send + Sync,
-        T::ResponseError: DeserializeOwned;
+        T::ResponseError: DeserializeOwned + Display;
 
     async fn send_no_response<T>(
         &self,
@@ -27,7 +27,7 @@ pub trait Transport {
     where
         T: Request + Send + Sync,
         T::Payload: Send + Sync,
-        T::ResponseError: DeserializeOwned;
+        T::ResponseError: DeserializeOwned + Display;
 }
 
 pub struct ArcadeResponse<T> {

@@ -2,8 +2,12 @@
 name = "arcadedb-rs"
 version = "0.0.0"
 edition = "2021"
-
-
+license = "Apache-2.0"
+description= "A Rust client for ArcadeDB"
+repository = "https://github.com/wolf4ood/arcadedb-rs"
+keywords = ["database", "graphs"]
+categories = ["database"]
+readme = "README.md"
 
 [dependencies]
 reqwest= {version ="0.11", features= ["json"]}

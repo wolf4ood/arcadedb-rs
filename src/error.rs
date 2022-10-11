@@ -2,13 +2,15 @@ use std::fmt::Display;
 
 use serde::{de::DeserializeOwned, Deserialize};
 
-#[derive(Debug)]
-pub enum ArcadeDBError<T: DeserializeOwned> {
+#[derive(Debug, thiserror::Error)]
+pub enum ArcadeDBError<T: DeserializeOwned + Display> {
+    #[error("ArcadeDB error {}", .0)]
     Error(T),
+    #[error(transparent)]
     Generic(anyhow::Error),
 }
 
-impl<T: DeserializeOwned> From<anyhow::Error> for ArcadeDBError<T> {
+impl<T: DeserializeOwned + Display> From<anyhow::Error> for ArcadeDBError<T> {
     fn from(err: anyhow::Error) -> Self {
         ArcadeDBError::Generic(err)
     }

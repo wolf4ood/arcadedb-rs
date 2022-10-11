@@ -55,6 +55,13 @@ impl Database {
         }
     }
 
+    pub async fn exists(&self) -> Result<bool, ArcadeDBError<ErrorResponse>> {
+        self.client
+            .databases()
+            .await
+            .map(|response| response.result.contains(&self.name))
+    }
+
     pub async fn drop(&self) -> Result<GenericResponse, ArcadeDBError<ErrorResponse>> {
         self.client
             .request(DropDatabaseRequest::new(&self.name))

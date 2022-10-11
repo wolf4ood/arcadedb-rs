@@ -44,3 +44,44 @@
 
 # Getting Started
 
+
+## Installation
+
+
+Install from [crates.io](https://crates.io/)
+
+```toml
+[dependencies]
+arcadedb-rs = "*"
+```
+
+
+## Examples
+
+
+
+# Development
+
+## Compiling
+
+
+```
+git clone https://github.com/wolf4ood/arcadedb-rs.git
+cd arcadedb-rs
+cargo build
+```
+
+
+## Running Tests
+
+
+You can use docker-compose to start an instance for testing. Use the env variable `ARCADEDB_SERVER`
+in order to specify the version of ArcadeDB
+
+```
+cd docker-compose
+export ARCADEDB_SERVER=22.8.1
+docker-compose up -d
+cd ..
+cargo test
+```

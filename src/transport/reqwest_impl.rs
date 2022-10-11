@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Display};
 
 use crate::{
     options::ArcadeDBOptions,
@@ -25,7 +25,7 @@ impl Transport for ReqwestTransport {
     where
         T: Request + Send + Sync,
         T::Payload: Send + Sync,
-        T::ResponseError: DeserializeOwned,
+        T::ResponseError: DeserializeOwned + Display,
     {
         self.prepare(request)
             .send_with_response::<T::Response, T::ResponseError>()
@@ -41,7 +41,7 @@ impl Transport for ReqwestTransport {
     where
         T: Request + Send + Sync,
         T::Payload: Send + Sync,
-        T::ResponseError: DeserializeOwned,
+        T::ResponseError: DeserializeOwned + Display,
     {
         self.prepare(request)
             .send_without_response::<T::ResponseError>()
@@ -78,12 +78,12 @@ impl ReqwestTransport {
 #[async_trait::async_trait]
 trait BuilderExt {
     fn authenticated(self, auth: &Auth) -> Self;
-    async fn send_with_response<OK: DeserializeOwned, ERR: DeserializeOwned>(
+    async fn send_with_response<OK: DeserializeOwned, ERR: DeserializeOwned + Display>(
         self,
     ) -> Result<Either<ArcadeResponse<OK>, ERR>>;
 
     fn with_custom_headers(self, metadata: HashMap<String, String>) -> Self;
-    async fn send_without_response<ERR: DeserializeOwned>(
+    async fn send_without_response<ERR: DeserializeOwned + Display>(
         self,
     ) -> Result<ArcadeResponse<()>, ArcadeDBError<ERR>>;
 }
@@ -106,7 +106,7 @@ impl BuilderExt for RequestBuilder {
         }
         this
     }
-    async fn send_with_response<OK: DeserializeOwned, ERR: DeserializeOwned>(
+    async fn send_with_response<OK: DeserializeOwned, ERR: DeserializeOwned + Display>(
         self,
     ) -> Result<Either<ArcadeResponse<OK>, ERR>> {
         let response = self.send().await?;
@@ -126,7 +126,7 @@ impl BuilderExt for RequestBuilder {
             Ok(Either::Right(response.json().await?))
         }
     }
-    async fn send_without_response<ERR: DeserializeOwned>(
+    async fn send_without_response<ERR: DeserializeOwned + Display>(
         self,
     ) -> Result<ArcadeResponse<()>, ArcadeDBError<ERR>> {
         let response = self.send().await.map_err(anyhow::Error::from)?;

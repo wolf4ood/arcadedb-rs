@@ -1,4 +1,4 @@
-use std::{collections::HashMap, marker::PhantomData};
+use std::{collections::HashMap, fmt::Display, marker::PhantomData};
 
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
@@ -13,7 +13,7 @@ const SESSION_HEADER: &str = "arcadedb-session-id";
 pub trait Request {
     type Payload: Serialize;
     type Response: DeserializeOwned;
-    type ResponseError: DeserializeOwned;
+    type ResponseError: DeserializeOwned + Display;
 
     fn path(&self) -> String;
 
