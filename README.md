@@ -19,8 +19,8 @@
     <img src="https://coveralls.io/repos/github/wolf4ood/arcadedb-rs/badge.svg?branch=master"
     alt="Coverage status" />
   </a>
-  <a href="https://crates.io/crates/arcadedb-client">
-    <img src="https://img.shields.io/crates/d/arcadedb-client.svg?style=flat-square"
+  <a href="https://crates.io/crates/arcadedb-rs">
+    <img src="https://img.shields.io/crates/d/arcadedb-rs.svg?style=flat-square"
       alt="Download" />
   </a>
   <a href="https://docs.rs/arcadedb-client">
