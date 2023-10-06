@@ -16,7 +16,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         rust: [stable]
-        arcadedb-server: [22.8.1]
+        arcadedb-server: [23.8.1]
     steps:
       - uses: actions/checkout@v2
       - name: Starting ArcadeDB Server
