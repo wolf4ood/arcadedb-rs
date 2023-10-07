@@ -5,7 +5,7 @@ use serde::de::DeserializeOwned;
 use crate::{
     command::{Statement, StatementKind},
     error::{ArcadeDBError, ErrorResponse},
-    protocol::{CreateDatabaseRequest, DropDatabaseRequest, GenericResponse, QueryCommand},
+    protocol::{GenericResponse, QueryCommand, ServerCommand, ServerCommandRequest},
     transaction::Transaction,
     ArcadeDB,
 };
@@ -64,13 +64,17 @@ impl Database {
 
     pub async fn drop(&self) -> Result<GenericResponse, ArcadeDBError<ErrorResponse>> {
         self.client
-            .request(DropDatabaseRequest::new(&self.name))
+            .request(ServerCommandRequest::<GenericResponse>::new(
+                ServerCommand::drop_db(&self.name),
+            ))
             .await
             .map(|response| response.payload)
     }
     pub async fn create(&self) -> Result<GenericResponse, ArcadeDBError<ErrorResponse>> {
         self.client
-            .request(CreateDatabaseRequest::new(&self.name))
+            .request(ServerCommandRequest::<GenericResponse>::new(
+                ServerCommand::create_db(&self.name),
+            ))
             .await
             .map(|response| response.payload)
     }

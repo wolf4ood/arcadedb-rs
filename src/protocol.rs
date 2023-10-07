@@ -1,6 +1,5 @@
-use std::{collections::HashMap, fmt::Display, marker::PhantomData};
-
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use std::{collections::HashMap, fmt::Display, marker::PhantomData};
 
 use crate::{
     command::{Statement, StatementKind},
@@ -9,6 +8,8 @@ use crate::{
 };
 
 const SESSION_HEADER: &str = "arcadedb-session-id";
+
+type EmptyResponse = serde_json::Value;
 
 pub trait Request {
     type Payload: Serialize;
@@ -19,7 +20,7 @@ pub trait Request {
 
     fn method(&self) -> Method;
 
-    fn payload(&self) -> &Self::Payload;
+    fn payload(&self) -> Option<&Self::Payload>;
 
     fn metadata(&self) -> HashMap<String, String> {
         HashMap::new()
@@ -31,32 +32,72 @@ pub enum Method {
     Post,
 }
 
-#[derive(Serialize)]
-pub struct CreateDatabaseRequest<'a> {
-    name: &'a str,
+pub struct ServerCommandRequest<'a, T> {
+    phantom: PhantomData<T>,
+    command: Command<'a>,
 }
 
-impl<'a> CreateDatabaseRequest<'a> {
-    pub fn new(name: &'a str) -> Self {
-        Self { name }
+#[derive(Serialize)]
+pub struct Command<'a> {
+    command: ServerCommand<'a>,
+}
+
+impl<'a, T> ServerCommandRequest<'a, T> {
+    pub fn new(command: ServerCommand<'a>) -> ServerCommandRequest<'a, GenericResponse> {
+        ServerCommandRequest {
+            phantom: PhantomData,
+            command: Command { command },
+        }
     }
 }
 
-impl<'a> Request for CreateDatabaseRequest<'a> {
-    type Payload = ();
-    type Response = GenericResponse;
+pub enum ServerCommand<'a> {
+    CreateDatabase(&'a str),
+    DropDatabase(&'a str),
+}
+
+impl<'a> ServerCommand<'a> {
+    pub fn create_db(db: &'a str) -> Self {
+        Self::CreateDatabase(db)
+    }
+    pub fn drop_db(db: &'a str) -> Self {
+        Self::DropDatabase(db)
+    }
+}
+
+impl<'a> Serialize for ServerCommand<'a> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match self {
+            ServerCommand::CreateDatabase(db) => {
+                serializer.serialize_str(&format!("CREATE DATABASE {}", db))
+            }
+            ServerCommand::DropDatabase(db) => {
+                serializer.serialize_str(&format!("DROP DATABASE {}", db))
+            }
+        }
+    }
+}
+
+impl<'a, T: DeserializeOwned> Request for ServerCommandRequest<'a, T> {
+    type Payload = Command<'a>;
+
+    type Response = T;
 
     type ResponseError = ErrorResponse;
 
     fn path(&self) -> String {
-        format!("/api/v1/create/{}", self.name)
+        "/api/v1/server".to_owned()
     }
+
     fn method(&self) -> Method {
         Method::Post
     }
 
-    fn payload(&self) -> &Self::Payload {
-        &()
+    fn payload(&self) -> Option<&Self::Payload> {
+        Some(&self.command)
     }
 }
 
@@ -82,8 +123,8 @@ impl Request for GetDatabasesRequest {
         Method::Get
     }
 
-    fn payload(&self) -> &Self::Payload {
-        &()
+    fn payload(&self) -> Option<&Self::Payload> {
+        None
     }
 }
 
@@ -92,35 +133,6 @@ pub struct DatabasesResponse {
     pub result: Vec<String>,
     pub user: String,
     pub version: String,
-}
-
-#[derive(Serialize)]
-pub struct DropDatabaseRequest<'a> {
-    name: &'a str,
-}
-
-impl<'a> DropDatabaseRequest<'a> {
-    pub fn new(name: &'a str) -> Self {
-        Self { name }
-    }
-}
-
-impl<'a> Request for DropDatabaseRequest<'a> {
-    type Payload = ();
-    type Response = GenericResponse;
-
-    type ResponseError = ErrorResponse;
-
-    fn path(&self) -> String {
-        format!("/api/v1/drop/{}", self.name)
-    }
-    fn method(&self) -> Method {
-        Method::Post
-    }
-
-    fn payload(&self) -> &Self::Payload {
-        &()
-    }
 }
 
 pub struct QueryCommand<'a, 'b, T: DeserializeOwned, Q: Queryable> {
@@ -173,8 +185,8 @@ impl<'a, 'b, T: DeserializeOwned, Q: Queryable> Request for QueryCommand<'a, 'b,
         Method::Post
     }
 
-    fn payload(&self) -> &Self::Payload {
-        &self.payload
+    fn payload(&self) -> Option<&Self::Payload> {
+        Some(&self.payload)
     }
     fn metadata(&self) -> HashMap<String, String> {
         let mut metadata = HashMap::new();
@@ -196,7 +208,7 @@ impl<'a> BeginRequest<'a> {
 }
 
 impl<'a> Request for BeginRequest<'a> {
-    type Payload = ();
+    type Payload = EmptyResponse;
 
     type Response = ();
 
@@ -210,8 +222,8 @@ impl<'a> Request for BeginRequest<'a> {
         Method::Post
     }
 
-    fn payload(&self) -> &Self::Payload {
-        &()
+    fn payload(&self) -> Option<&Self::Payload> {
+        None
     }
 }
 
@@ -241,9 +253,10 @@ impl<'a> Request for CommitRequest<'a> {
         Method::Post
     }
 
-    fn payload(&self) -> &Self::Payload {
-        &()
+    fn payload(&self) -> Option<&Self::Payload> {
+        None
     }
+
     fn metadata(&self) -> HashMap<String, String> {
         let mut metadata = HashMap::new();
         metadata.insert(SESSION_HEADER.to_string(), self.session_id.to_string());
@@ -277,9 +290,10 @@ impl<'a> Request for RollbackRequest<'a> {
         Method::Post
     }
 
-    fn payload(&self) -> &Self::Payload {
-        &()
+    fn payload(&self) -> Option<&Self::Payload> {
+        None
     }
+
     fn metadata(&self) -> HashMap<String, String> {
         let mut metadata = HashMap::new();
         metadata.insert(SESSION_HEADER.to_string(), self.session_id.to_string());

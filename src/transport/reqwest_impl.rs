@@ -68,10 +68,16 @@ impl ReqwestTransport {
             Method::Get => self.client.get(url),
             Method::Post => self.client.post(url),
         };
-        builder
+
+        let builder = builder
             .authenticated(&self.opts.auth)
-            .with_custom_headers(request.metadata())
-            .json(request.payload())
+            .with_custom_headers(request.metadata());
+
+        if let Some(json) = request.payload() {
+            builder.json(json)
+        } else {
+            builder
+        }
     }
 }
 
