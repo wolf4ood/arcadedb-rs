@@ -10,7 +10,7 @@ categories = ["database"]
 readme = "README.md"
 
 [dependencies]
-reqwest= {version ="0.11", features= ["json"]}
+reqwest= {version ="0.12", features= ["json"]}
 anyhow= "1"
 thiserror= "1"
 serde = {version = "1", features =["derive"]}
