@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.4](https://github.com/wolf4ood/arcadedb-rs/compare/v0.0.3...v0.0.4) - 2024-09-26
+
+### Other
+
+- fix ci
+- bumped arcadedb to 24.6.1
+- *(deps)* update reqwest requirement from 0.11 to 0.12 ([#2](https://github.com/wolf4ood/arcadedb-rs/pull/2))
+
 ## [0.0.3](https://github.com/wolf4ood/arcadedb-rs/compare/v0.0.2...v0.0.3) - 2023-10-07
 
 ### Fixed
